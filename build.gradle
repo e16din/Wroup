@@ -1,19 +1,36 @@
-apply plugin: 'com.android.library'
+buildscript {
+    repositories {
+        google()
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.3.0'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
+    }
+}
 
+apply plugin: 'com.android.library'
 android {
-    compileSdkVersion 24
-    buildToolsVersion "25.0.0"
+    compileSdkVersion 28
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 24
+        targetSdkVersion 28
         versionCode 1
-        versionName "0.9"
-        version 0.9
+        versionName "0.91"
+        version 2
+        multiDexEnabled true
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
+    compileOptions {
+        sourceCompatibility = '1.8'
+        targetCompatibility = '1.8'
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -24,14 +41,15 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    compile 'com.android.support:appcompat-v7:24.2.1'
-    testCompile 'junit:junit:4.12'
+    implementation "androidx.multidex:multidex:2.0.1"
+    implementation 'com.google.code.gson:gson:2.8.5'
+    compile 'commons-io:commons-io:2.6'
+}
 
-    compile 'com.google.code.gson:gson:2.8.0'
-    compile 'commons-io:commons-io:2.4'
+repositories {
+    google()
+    jcenter()
+    mavenCentral()
 }
 
 apply from: 'install.gradle'
