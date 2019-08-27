@@ -88,6 +88,8 @@ public class WroupClient implements PeerConnectedListener, ServiceDisconnectedLi
 
     private static WroupClient instance;
 
+    private final int connectTimeDelayMs;
+
     private List<WroupServiceDevice> serviceDevices = new ArrayList<>();
 
     private DnsSdTxtRecordListener dnsSdTxtRecordListener;
@@ -105,7 +107,8 @@ public class WroupClient implements PeerConnectedListener, ServiceDisconnectedLi
     private Map<String, WroupDevice> clientsConnected;
     private Boolean isRegistered = false;
 
-    private WroupClient(Context context) {
+    public WroupClient(Context context, int timeDelayMs) {
+        this.connectTimeDelayMs = timeDelayMs;
         wiFiP2PInstance = WiFiP2PInstance.getInstance(context);
         wiFiP2PInstance.setPeerConnectedListener(this);
         wiFiP2PInstance.setServerDisconnectedListener(this);
@@ -118,9 +121,9 @@ public class WroupClient implements PeerConnectedListener, ServiceDisconnectedLi
      * @param context The application context.
      * @return The actual WroupClient instance.
      */
-    public static WroupClient getInstance(Context context) {
+    public static WroupClient getInstance(Context context, int timeDelayMs) {
         if (instance == null && context != null) {
-            instance = new WroupClient(context);
+            instance = new WroupClient(context, timeDelayMs);
         }
         return instance;
     }
@@ -277,21 +280,6 @@ public class WroupClient implements PeerConnectedListener, ServiceDisconnectedLi
 
             // We are connected to the server. Create a server socket to receive messages
             createServerSocket();
-
-            // FIXME - Change this into a server socket creation listener or similar
-            // Wait 2 seconds for the server socket creation
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                public void run() {
-                    // We send the negotiation message to the server
-                    sendServerRegistrationMessage();
-                    if (serviceConnectedListener != null) {
-                        serviceConnectedListener.onServiceConnected(serviceDevice);
-                    }
-
-                    isRegistered = true;
-                }
-            }, 2000);
         }
     }
 
@@ -389,17 +377,15 @@ public class WroupClient implements PeerConnectedListener, ServiceDisconnectedLi
         // FIXME - Change this into a message sent it listener
         // Wait 2 seconds to disconnection message was sent
         Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            public void run() {
-                WiFiDirectUtils.clearServiceRequest(wiFiP2PInstance);
-                WiFiDirectUtils.stopPeerDiscovering(wiFiP2PInstance);
-                WiFiDirectUtils.removeGroup(wiFiP2PInstance);
+        handler.postDelayed(() -> {
+            WiFiDirectUtils.clearServiceRequest(wiFiP2PInstance);
+            WiFiDirectUtils.stopPeerDiscovering(wiFiP2PInstance);
+            WiFiDirectUtils.removeGroup(wiFiP2PInstance);
 
-                serverSocket = null;
-                isRegistered = false;
-                clientsConnected.clear();
-            }
-        }, 2000);
+            serverSocket = null;
+            isRegistered = false;
+            clientsConnected.clear();
+        }, connectTimeDelayMs);
     }
 
     /**
@@ -421,33 +407,29 @@ public class WroupClient implements PeerConnectedListener, ServiceDisconnectedLi
     }
 
     private DnsSdTxtRecordListener getTxtRecordListener(final ServiceDiscoveredListener serviceDiscoveredListener) {
-        return new DnsSdTxtRecordListener() {
+        return (fullDomainName, txtRecordMap, device) -> {
 
-            @Override
-            public void onDnsSdTxtRecordAvailable(String fullDomainName, Map<String, String> txtRecordMap, WifiP2pDevice device) {
+            if (txtRecordMap.containsKey(WroupService.SERVICE_NAME_PROPERTY) && txtRecordMap.get(WroupService.SERVICE_NAME_PROPERTY).equalsIgnoreCase(WroupService.SERVICE_NAME_VALUE)) {
+                Integer servicePort = Integer.valueOf(txtRecordMap.get(WroupService.SERVICE_PORT_PROPERTY));
+                WroupServiceDevice serviceDevice = new WroupServiceDevice(device);
+                serviceDevice.setDeviceServerSocketPort(servicePort);
+                serviceDevice.setTxtRecordMap(txtRecordMap);
 
-                if (txtRecordMap.containsKey(WroupService.SERVICE_NAME_PROPERTY) && txtRecordMap.get(WroupService.SERVICE_NAME_PROPERTY).equalsIgnoreCase(WroupService.SERVICE_NAME_VALUE)) {
-                    Integer servicePort = Integer.valueOf(txtRecordMap.get(WroupService.SERVICE_PORT_PROPERTY));
-                    WroupServiceDevice serviceDevice = new WroupServiceDevice(device);
-                    serviceDevice.setDeviceServerSocketPort(servicePort);
-                    serviceDevice.setTxtRecordMap(txtRecordMap);
+                if (!serviceDevices.contains(serviceDevice)) {
+                    Log.i(TAG, "Found a new Wroup service: ");
+                    Log.i(TAG, "\tDomain Name: " + fullDomainName);
+                    Log.i(TAG, "\tDevice Name: " + device.deviceName);
+                    Log.i(TAG, "\tDevice Address: " + device.deviceAddress);
+                    Log.i(TAG, "\tServer socket Port: " + serviceDevice.getDeviceServerSocketPort());
 
-                    if (!serviceDevices.contains(serviceDevice)) {
-                        Log.i(TAG, "Found a new Wroup service: ");
-                        Log.i(TAG, "\tDomain Name: " + fullDomainName);
-                        Log.i(TAG, "\tDevice Name: " + device.deviceName);
-                        Log.i(TAG, "\tDevice Address: " + device.deviceAddress);
-                        Log.i(TAG, "\tServer socket Port: " + serviceDevice.getDeviceServerSocketPort());
-
-                        serviceDevices.add(serviceDevice);
-                        serviceDiscoveredListener.onNewServiceDeviceDiscovered(serviceDevice);
-                    }
-                } else {
-                    Log.d(TAG, "Found a new service: ");
-                    Log.d(TAG, "\tDomain Name: " + fullDomainName);
-                    Log.d(TAG, "\tDevice Name: " + device.deviceName);
-                    Log.d(TAG, "\tDevice Address: " + device.deviceAddress);
+                    serviceDevices.add(serviceDevice);
+                    serviceDiscoveredListener.onNewServiceDeviceDiscovered(serviceDevice);
                 }
+            } else {
+                Log.d(TAG, "Found a new service: ");
+                Log.d(TAG, "\tDomain Name: " + fullDomainName);
+                Log.d(TAG, "\tDevice Name: " + device.deviceName);
+                Log.d(TAG, "\tDevice Address: " + device.deviceAddress);
             }
         };
     }
@@ -496,6 +478,21 @@ public class WroupClient implements PeerConnectedListener, ServiceDisconnectedLi
                     return null;
                 }
 
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    // FIXME - Change this into a server socket creation listener or similar
+                    // Wait 2 seconds for the server socket creation
+                    Handler handler = new Handler();
+                    handler.postDelayed(() -> {
+                        // We send the negotiation message to the server
+                        sendServerRegistrationMessage();
+                        if (serviceConnectedListener != null) {
+                            serviceConnectedListener.onServiceConnected(serviceDevice);
+                        }
+
+                        isRegistered = true;
+                    }, connectTimeDelayMs);
+                }
             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
     }
