@@ -280,6 +280,19 @@ public class WroupClient implements PeerConnectedListener, ServiceDisconnectedLi
 
             // We are connected to the server. Create a server socket to receive messages
             createServerSocket();
+
+            // FIXME - Change this into a server socket creation listener or similar
+            // Wait 2 seconds for the server socket creation
+            Handler handler = new Handler();
+            handler.postDelayed(() -> {
+                // We send the negotiation message to the server
+                sendServerRegistrationMessage();
+                if (serviceConnectedListener != null) {
+                    serviceConnectedListener.onServiceConnected(serviceDevice);
+                }
+
+                isRegistered = true;
+            }, connectTimeDelayMs);
         }
     }
 
@@ -478,21 +491,6 @@ public class WroupClient implements PeerConnectedListener, ServiceDisconnectedLi
                     return null;
                 }
 
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    // FIXME - Change this into a server socket creation listener or similar
-                    // Wait 2 seconds for the server socket creation
-                    Handler handler = new Handler();
-                    handler.postDelayed(() -> {
-                        // We send the negotiation message to the server
-                        sendServerRegistrationMessage();
-                        if (serviceConnectedListener != null) {
-                            serviceConnectedListener.onServiceConnected(serviceDevice);
-                        }
-
-                        isRegistered = true;
-                    }, connectTimeDelayMs);
-                }
             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
     }
