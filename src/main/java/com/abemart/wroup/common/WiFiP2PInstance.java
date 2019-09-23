@@ -23,10 +23,10 @@ public class WiFiP2PInstance implements WifiP2pManager.ConnectionInfoListener {
     private PeerConnectedListener peerConnectedListener;
     private ServiceDisconnectedListener serviceDisconnectedListener;
 
-    private WiFiP2PInstance() {
+    public WiFiP2PInstance() {
     }
 
-    private WiFiP2PInstance(Context context) {
+    public WiFiP2PInstance(Context context) {
         this();
 
         wifiP2pManager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);

@@ -108,7 +108,7 @@ public class WroupClient implements PeerConnectedListener, ServiceDisconnectedLi
 
     public WroupClient(Context context, int timeDelayMs) {
         this.connectTimeDelayMs = timeDelayMs;
-        wiFiP2PInstance = WiFiP2PInstance.getInstance(context);
+        wiFiP2PInstance = new WiFiP2PInstance(context);
         wiFiP2PInstance.setPeerConnectedListener(this);
         wiFiP2PInstance.setServerDisconnectedListener(this);
         this.clientsConnected = new HashMap<>();

@@ -88,7 +88,7 @@ public class WroupService implements PeerConnectedListener {
     private Boolean groupAlreadyCreated = false;
 
     WroupService(Context context) {
-        wiFiP2PInstance = WiFiP2PInstance.getInstance(context);
+        wiFiP2PInstance = new WiFiP2PInstance(context);
         wiFiP2PInstance.setPeerConnectedListener(this);
     }
 
