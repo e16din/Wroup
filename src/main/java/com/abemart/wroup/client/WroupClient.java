@@ -86,7 +86,6 @@ public class WroupClient implements PeerConnectedListener, ServiceDisconnectedLi
 
     private static final String TAG = WroupClient.class.getSimpleName();
 
-    private static WroupClient instance;
 
     private final int connectTimeDelayMs;
 
@@ -113,19 +112,6 @@ public class WroupClient implements PeerConnectedListener, ServiceDisconnectedLi
         wiFiP2PInstance.setPeerConnectedListener(this);
         wiFiP2PInstance.setServerDisconnectedListener(this);
         this.clientsConnected = new HashMap<>();
-    }
-
-    /**
-     * Return the WroupClient instance. If the instance doesn't exist yet, it's created and returned.
-     *
-     * @param context The application context.
-     * @return The actual WroupClient instance.
-     */
-    public static WroupClient getInstance(Context context, int timeDelayMs) {
-        if (instance == null && context != null) {
-            instance = new WroupClient(context, timeDelayMs);
-        }
-        return instance;
     }
 
     /**

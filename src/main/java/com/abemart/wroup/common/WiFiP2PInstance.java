@@ -14,8 +14,6 @@ public class WiFiP2PInstance implements WifiP2pManager.ConnectionInfoListener {
 
     private static final String TAG = WiFiP2PInstance.class.getSimpleName();
 
-    private static WiFiP2PInstance instance;
-
     private WifiP2pManager wifiP2pManager;
     private WifiP2pManager.Channel channel;
     private WiFiDirectBroadcastReceiver broadcastReceiver;
@@ -34,15 +32,6 @@ public class WiFiP2PInstance implements WifiP2pManager.ConnectionInfoListener {
         wifiP2pManager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
         channel = wifiP2pManager.initialize(context, context.getMainLooper(), null);
         broadcastReceiver = new WiFiDirectBroadcastReceiver(this);
-    }
-
-
-    public static WiFiP2PInstance getInstance(Context context) {
-        if (instance == null) {
-            instance = new WiFiP2PInstance(context);
-        }
-
-        return instance;
     }
 
     public WifiP2pManager getWifiP2pManager() {

@@ -78,8 +78,6 @@ public class WroupService implements PeerConnectedListener {
     public static final String SERVICE_NAME_VALUE = "WROUP";
     public static final String SERVICE_GROUP_NAME = "GROUP_NAME";
 
-    private static WroupService instance;
-
     private DataReceivedListener dataReceivedListener;
     private ClientConnectedListener clientConnectedListener;
     private ClientDisconnectedListener clientDisconnectedListener;
@@ -89,23 +87,9 @@ public class WroupService implements PeerConnectedListener {
     private ServerSocket serverSocket;
     private Boolean groupAlreadyCreated = false;
 
-    private WroupService(Context context) {
+    WroupService(Context context) {
         wiFiP2PInstance = WiFiP2PInstance.getInstance(context);
         wiFiP2PInstance.setPeerConnectedListener(this);
-    }
-
-    /**
-     * Return the <code>WroupService</code> instance. If the instance doesn't exist yet, it's
-     * created and returned.
-     *
-     * @param context The application context.
-     * @return The actual <code>WroupService</code> instance.
-     */
-    public static WroupService getInstance(Context context) {
-        if (instance == null) {
-            instance = new WroupService(context);
-        }
-        return instance;
     }
 
     /**
