@@ -82,7 +82,7 @@ public class WroupService implements PeerConnectedListener {
     private ClientConnectedListener clientConnectedListener;
     private ClientDisconnectedListener clientDisconnectedListener;
     private Map<String, WroupDevice> clientsConnected = new HashMap<>();
-    private WiFiP2PInstance wiFiP2PInstance;
+    public WiFiP2PInstance wiFiP2PInstance;
 
     private ServerSocket serverSocket;
     private Boolean groupAlreadyCreated = false;

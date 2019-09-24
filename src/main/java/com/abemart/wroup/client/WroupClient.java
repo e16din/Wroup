@@ -101,7 +101,7 @@ public class WroupClient implements PeerConnectedListener, ServiceDisconnectedLi
 
     private ServerSocket serverSocket;
 
-    private WiFiP2PInstance wiFiP2PInstance;
+    public WiFiP2PInstance wiFiP2PInstance;
     private WroupDevice serviceDevice;
     private Map<String, WroupDevice> clientsConnected;
     private Boolean isRegistered = false;
