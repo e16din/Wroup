@@ -354,7 +354,7 @@ public class WroupClient implements PeerConnectedListener, ServiceDisconnectedLi
 
                 return null;
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
+        }.execute();
     }
 
     /**
@@ -477,7 +477,7 @@ public class WroupClient implements PeerConnectedListener, ServiceDisconnectedLi
                     return null;
                 }
 
-            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            }.execute();
         }
     }
 

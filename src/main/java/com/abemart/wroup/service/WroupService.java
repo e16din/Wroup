@@ -286,7 +286,7 @@ public class WroupService implements PeerConnectedListener {
 
                 return null;
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
+        }.execute();
     }
 
     private void createServerSocket() {
@@ -318,7 +318,7 @@ public class WroupService implements PeerConnectedListener {
                     return null;
                 }
 
-            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            }.execute();
         }
     }
 
